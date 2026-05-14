@@ -144,6 +144,20 @@ def _conformance_stats(coverage: List[Dict[str, Any]]) -> Dict[str, Any]:
     }
 
 
+def weighted_conformance_percent(coverage: List[Dict[str, Any]]) -> float | None:
+    """
+    Weighted discovery coverage as a percentage (same basis as ``score_0_100``),
+    without rounding to an integer — e.g. 81.875 → useful for explaining ~82/100.
+    """
+    if not coverage:
+        return None
+    n = len(coverage)
+    weighted = sum(_status_weight(str(c.get("status") or "")) for c in coverage if isinstance(c, dict))
+    if n <= 0:
+        return None
+    return 100.0 * weighted / n
+
+
 def _empty_polished() -> Dict[str, str]:
     return {k: "" for k in _POLISHED_KEYS}
 

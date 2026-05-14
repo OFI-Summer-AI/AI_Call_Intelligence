@@ -1,0 +1,16 @@
+# Hide built-in pages/ sidebar list — we use custom st.page_link nav in app/frontend/streamlit_nav.py
+[client]
+showSidebarNavigation = false
+
+# Bind to IPv4 localhost so http://localhost:8501 works reliably on Windows (often ::1 vs 127.0.0.1).
+[browser]
+serverAddress = "127.0.0.1"
+gatherUsageStats = false
+
+# Streamlit defaults to 200 MB; long recordings need more. Value is megabytes (8192 ≈ 8 GiB).
+# Override at launch: streamlit run ... --server.maxUploadSize 8192
+# Or env: STREAMLIT_SERVER_MAX_UPLOAD_SIZE=8192
+[server]
+address = "127.0.0.1"
+port = 8501
+maxUploadSize = 8192
