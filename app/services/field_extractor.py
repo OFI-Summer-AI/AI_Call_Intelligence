@@ -1,110 +1,111 @@
+import json
 import re
 from typing import List, Dict
+
+from openai import OpenAI
+
+from app.config import LLM_MODEL, OPENAI_API_KEY
 
 
 class FieldExtractor:
     """
-    Simple rule-based starter extractor.
-    Replace later with an LLM-based extractor if needed.
+    LLM-based sales field extraction from speaker-attributed transcript segments.
+    Falls back to a minimal structure if OPENAI_API_KEY is missing or JSON parse fails.
     """
 
-    CLIENT_NAME_PATTERNS = [
-        r"client name is ([^.]+)",
-        r"from ([A-Z][A-Za-z0-9&\s]+)",
-    ]
+    def __init__(self) -> None:
+        self._api_key = OPENAI_API_KEY
+        self._model = LLM_MODEL
+        self._client: OpenAI | None = OpenAI(api_key=self._api_key) if self._api_key else None
 
     def extract(self, transcript_segments: List[Dict]) -> dict:
-        full_text = " ".join(seg["text"] for seg in transcript_segments)
+        if not self._client:
+            return self._empty_extraction(
+                "OPENAI_API_KEY is not set; skipping LLM extraction."
+            )
+
+        transcript_text = self._build_transcript_text(transcript_segments)
+
+        prompt = f"""
+You are a sales call intelligence extractor.
+
+From the transcript below, extract these fields:
+- client_name
+- client_problem
+- strict_requirements
+- techstack_platform
+- budget
+- timeline
+- next_steps
+- risks
+
+Rules:
+- Return ONLY valid JSON (no markdown fences).
+- If a field is not clearly present, use null or empty list.
+- Keep the output concise and factual.
+- Do not invent information.
+
+Transcript:
+{transcript_text}
+"""
+
+        response = self._client.chat.completions.create(
+            model=self._model,
+            messages=[
+                {
+                    "role": "system",
+                    "content": "You extract structured sales intelligence from meeting transcripts.",
+                },
+                {"role": "user", "content": prompt},
+            ],
+            temperature=0,
+        )
+
+        raw = (response.choices[0].message.content or "").strip()
+        raw = self._strip_json_fence(raw)
+
+        try:
+            data = json.loads(raw)
+            if isinstance(data, dict):
+                return data
+        except json.JSONDecodeError:
+            pass
 
         return {
-            "client_name": self._extract_client_name(full_text),
-            "client_problem": self._extract_problem(full_text),
-            "strict_requirements": self._extract_requirements(full_text),
-            "techstack_platform": self._extract_platforms(full_text),
-            "timeline": self._extract_timeline(full_text),
-            "budget": self._extract_budget(full_text),
-            "next_steps": self._extract_next_steps(full_text),
+            "client_name": None,
+            "client_problem": None,
+            "strict_requirements": [],
+            "techstack_platform": [],
+            "budget": None,
+            "timeline": None,
+            "next_steps": [],
+            "risks": [],
+            "raw_llm_output": raw,
         }
 
-    def _extract_client_name(self, text: str) -> str | None:
-        for pattern in self.CLIENT_NAME_PATTERNS:
-            m = re.search(pattern, text, flags=re.IGNORECASE)
-            if m:
-                return m.group(1).strip()
-        return None
+    def _empty_extraction(self, note: str) -> dict:
+        return {
+            "client_name": None,
+            "client_problem": None,
+            "strict_requirements": [],
+            "techstack_platform": [],
+            "budget": None,
+            "timeline": None,
+            "next_steps": [],
+            "risks": [],
+            "extraction_note": note,
+        }
 
-    def _extract_problem(self, text: str) -> str | None:
-        keywords = [
-            "problem",
-            "pain point",
-            "issue",
-            "challenge",
-            "difficulty",
-            "manual",
-            "delay",
-        ]
-        if any(k in text.lower() for k in keywords):
-            return "Potential business problem mentioned in call"
-        return None
+    @staticmethod
+    def _strip_json_fence(raw: str) -> str:
+        m = re.match(r"^\s*```(?:json)?\s*\n?(.*?)\n?```\s*$", raw, re.DOTALL | re.IGNORECASE)
+        return m.group(1).strip() if m else raw
 
-    def _extract_requirements(self, text: str) -> list[str]:
-        reqs = []
-        patterns = [
-            r"must (?:be|support) ([^.]+)",
-            r"need ([^.]+)",
-            r"require ([^.]+)",
-            r"should ([^.]+)",
-        ]
-        for pattern in patterns:
-            for m in re.finditer(pattern, text, flags=re.IGNORECASE):
-                value = m.group(1).strip()
-                if value and value not in reqs:
-                    reqs.append(value)
-        return reqs
-
-    def _extract_platforms(self, text: str) -> list[str]:
-        platforms = ["SAP", "Power BI", "Tableau", "Salesforce", "AWS", "Azure", "GCP", "Databricks"]
-        found = []
-        lower = text.lower()
-        for p in platforms:
-            if p.lower() in lower:
-                found.append(p)
-        return found
-
-    def _extract_timeline(self, text: str) -> str | None:
-        patterns = [
-            r"within (\d+\s?(?:days?|weeks?|months?))",
-            r"in (\d+\s?(?:days?|weeks?|months?))",
-            r"by (\w+\s?\w*)",
-        ]
-        for pattern in patterns:
-            m = re.search(pattern, text, flags=re.IGNORECASE)
-            if m:
-                return m.group(1).strip()
-        return None
-
-    def _extract_budget(self, text: str) -> str | None:
-        patterns = [
-            r"\$[\d,]+(?:\.\d+)?",
-            r"budget of ([^.]+)",
-            r"budget is ([^.]+)",
-        ]
-        for pattern in patterns:
-            m = re.search(pattern, text, flags=re.IGNORECASE)
-            if m:
-                return (m.group(1) if m.lastindex else m.group(0)).strip()
-        return None
-
-    def _extract_next_steps(self, text: str) -> list[str]:
-        steps = []
-        patterns = [
-            r"next step(?:s)?[:\-]?\s*([^.]+)",
-            r"we will ([^.]+)",
-            r"follow up on ([^.]+)",
-        ]
-        for pattern in patterns:
-            for m in re.finditer(pattern, text, flags=re.IGNORECASE):
-                value = m.group(1).strip()
-                if value and value not in steps:
-                    steps.append(value)
-        return steps
+    def _build_transcript_text(self, transcript_segments: List[Dict]) -> str:
+        lines = []
+        for seg in transcript_segments:
+            speaker = seg.get("speaker", "Unknown")
+            start = seg.get("start", "")
+            text = seg.get("text", "")
+            lines.append(f"[{start}] {speaker}: {text}")
+        return "\n".join(lines)

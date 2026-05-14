@@ -6,25 +6,25 @@ class RiskReportService:
         risks = []
 
         if not extracted_fields.get("client_name"):
-            risks.append("Client name not clearly identified.")
+            risks.append("Client name was not clearly captured.")
 
         if not extracted_fields.get("client_problem"):
-            risks.append("Client problem/pain point not clearly captured.")
+            risks.append("Client problem is not clearly stated.")
 
         if not extracted_fields.get("strict_requirements"):
-            risks.append("Strict requirements should be double-checked with client.")
+            risks.append("Strict requirements need confirmation.")
 
         if not extracted_fields.get("techstack_platform"):
-            risks.append("Tech stack / platform not clearly mentioned.")
+            risks.append("Tech stack / platform should be double-checked.")
 
         if not extracted_fields.get("timeline"):
-            risks.append("Timeline not clearly committed.")
+            risks.append("Timeline was not clearly committed.")
 
         if not extracted_fields.get("budget"):
-            risks.append("Budget not clearly confirmed.")
+            risks.append("Budget was not clearly discussed.")
 
         if not extracted_fields.get("next_steps"):
-            risks.append("Next steps should be confirmed.")
+            risks.append("Next steps are missing or unclear.")
 
         return {
             "risks": risks,
