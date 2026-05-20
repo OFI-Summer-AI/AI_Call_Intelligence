@@ -1,18 +1,11 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
-from app.frontend.bootstrap import ensure_project_root
-
-ensure_project_root()
+import _aci_root  # noqa: F401
 
 import streamlit as st
 
 from app.config import DATA_DIR, REPORTS_FINAL_DIR, UPLOAD_DIR
-from app.frontend.product_theme import apply_product_theme, centered_narrow
-from app.frontend.streamlit_nav import sidebar_nav
-
-st.set_page_config(page_title="Settings", layout="wide")
-apply_product_theme()
-sidebar_nav()
+from app.frontend.product_theme import centered_narrow
 
 _, center, _ = centered_narrow()
 with center:

@@ -263,7 +263,11 @@ Every label in the distinct list must be a key in speaker_map.
     )
     raw = (response.choices[0].message.content or "").strip()
     raw = _strip_json_fence(raw)
-    data = json.loads(raw)
+    try:
+        data = json.loads(raw)
+    except json.JSONDecodeError as e:
+        head = raw[:800].replace("\n", " ")
+        raise ValueError(f"speaker_map JSON parse failed: {e}; head={head!r}") from e
     summary = str(data.get("summary") or "").strip()
     sm = data.get("speaker_map")
     speaker_map = {str(k): str(v) for k, v in sm.items()} if isinstance(sm, dict) else {}

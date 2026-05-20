@@ -1,19 +1,17 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
-from app.frontend.bootstrap import ensure_project_root
+from pathlib import Path
 
-ensure_project_root()
+import _aci_root  # noqa: F401
 
 import streamlit as st
 
+_P = Path(__file__).parent
+
 from app.frontend.meeting_dashboard import list_report_paths, render_recording_kpi_card
 from app.frontend.meeting_registry import get_entry, meeting_id_from_report_filename
-from app.frontend.product_theme import apply_product_theme, centered_narrow
-from app.frontend.streamlit_nav import query_report_name, sidebar_nav
-
-st.set_page_config(page_title="Meetings library", layout="wide")
-apply_product_theme()
-sidebar_nav()
+from app.frontend.product_theme import centered_narrow
+from app.frontend.streamlit_nav import query_report_name
 
 _, center, _ = centered_narrow()
 with center:
@@ -23,7 +21,7 @@ with center:
     paths = list_report_paths()
     if not paths:
         st.warning("No meetings yet.")
-        st.page_link("pages/02_Upload_Recording.py", label="Upload recording", icon="📤")
+        st.page_link(str(_P / "upload_recording.py"), label="Upload recording", icon="📤")
         st.stop()
 
     f1, f2 = st.columns(2)

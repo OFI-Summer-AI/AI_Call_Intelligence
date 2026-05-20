@@ -1,19 +1,18 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 import shutil
 from pathlib import Path
 
-from app.frontend.bootstrap import ensure_project_root
-
-ensure_project_root()
+import _aci_root  # noqa: F401
 
 import streamlit as st
+
+_P = Path(__file__).parent
 
 from app.config import STREAMLIT_MAX_UPLOAD_MB, UPLOAD_DIR
 from app.media_inputs import MEDIA_EXTENSIONS
 from app.frontend.meeting_registry import upsert_entry
-from app.frontend.product_theme import apply_product_theme, centered_narrow
-from app.frontend.streamlit_nav import sidebar_nav
+from app.frontend.product_theme import centered_narrow
 
 
 def _safe_stem(name: str, fallback: str) -> str:
@@ -21,20 +20,20 @@ def _safe_stem(name: str, fallback: str) -> str:
     return base or fallback
 
 
-st.set_page_config(page_title="Upload recording", layout="wide")
-apply_product_theme()
-sidebar_nav()
-
 _, center, _ = centered_narrow()
 with center:
-    st.markdown("## Upload a meeting")
+    st.markdown("<div style='margin-top: 2rem;'></div>", unsafe_allow_html=True)
+    st.markdown("## Upload a Meeting")
     _gib = STREAMLIT_MAX_UPLOAD_MB / 1024.0
-    st.caption(
-        f"Video or audio — MP4, MOV, MKV, WebM, WAV, MP3, M4A, and more. "
-        f"Per-file limit is **{STREAMLIT_MAX_UPLOAD_MB:,} MB** (about {_gib:.1f} GiB). "
-        "Huge uploads still need enough RAM and free disk while the browser sends the file; "
-        "for multi-hour raw recordings you can copy the file into `data/uploads` and run "
-        "`python -m app.main path/to/file.mp4`."
+    st.markdown(
+        f"""<p style="color:#4b5563; font-size:0.95rem; line-height:1.7; margin-bottom:1rem;">
+        Video or audio — <strong>MP4, MOV, MKV, WebM, WAV, MP3, M4A</strong>, and more.
+        Per-file limit is <strong>{STREAMLIT_MAX_UPLOAD_MB:,} MB</strong> (about {_gib:.1f} GiB).
+        Huge uploads still need enough RAM and free disk while the browser sends the file.
+        For multi-hour raw recordings, copy the file into <code>data/uploads</code> and run
+        <code>python -m app.main path/to/file.mp4</code>.
+        </p>""",
+        unsafe_allow_html=True,
     )
     with st.container(border=True):
         _uploader_types = sorted({e.lstrip(".").lower() for e in MEDIA_EXTENSIONS})
@@ -42,7 +41,6 @@ with center:
             "File",
             type=_uploader_types,
             label_visibility="collapsed",
-            max_upload_size=STREAMLIT_MAX_UPLOAD_MB,
             help=f"Max {STREAMLIT_MAX_UPLOAD_MB:,} MB per file (set STREAMLIT_MAX_UPLOAD_MB or .streamlit/config.toml).",
         )
         meeting_name = st.text_input("Meeting name", placeholder="e.g. Acme discovery call")
@@ -80,5 +78,8 @@ with center:
             language=language,
             source="upload",
         )
+        st.session_state.pop("processing_inflight_path", None)
+        st.session_state.pop("processing_complete_path", None)
+        st.session_state.pop("processing_report_name", None)
         st.session_state["pending_video_path"] = str(dest.resolve())
-        st.switch_page("pages/04_Processing.py")
+        st.switch_page(str(_P / "processing.py"))

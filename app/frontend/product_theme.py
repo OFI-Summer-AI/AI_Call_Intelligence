@@ -26,11 +26,15 @@ PRODUCT_CSS = """
         padding-bottom: 2rem !important;
         max-width: 1260px !important;
     }
+    /* ---- Sidebar toggle button — always visible ---- */
+    [data-testid="stSidebarCollapsedControl"] {
+        display: flex !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+    }
     /* ---- Dark sidebar (collapsible rail) ---- */
     section[data-testid="stSidebar"] {
         min-height: 100vh !important;
-        width: 17.5rem !important;
-        min-width: 17rem !important;
         border-right: 1px solid var(--sidebar-edge) !important;
         box-shadow: 6px 0 28px rgba(2, 6, 23, 0.35) !important;
         background: linear-gradient(188deg, var(--sidebar-bg0) 0%, var(--sidebar-bg1) 38%, var(--sidebar-bg2) 100%) !important;
@@ -108,7 +112,63 @@ PRODUCT_CSS = """
     .stApp {
         background: linear-gradient(165deg, #eef2ff 0%, #f8fafc 28%, #f1f5f9 100%) !important;
     }
-    h1, h2, h3 { letter-spacing: -0.02em; color: var(--text) !important; font-weight: 600 !important; }
+    h1, h2, h3, h4, h5, h6,
+    [data-testid="stHeading"] h1, [data-testid="stHeading"] h2, [data-testid="stHeading"] h3,
+    [data-testid="stHeading"] h4, [data-testid="stHeading"] h5, [data-testid="stHeading"] h6
+    { letter-spacing: -0.02em; color: var(--text) !important; font-weight: 600 !important; }
+    p, li, label, .stMarkdown p, .stMarkdown span { color: var(--text) !important; }
+    [data-testid="stMetricValue"], [data-testid="stMetricLabel"], [data-testid="stMetricDelta"] { color: var(--text) !important; }
+    [data-testid="stAlert"] p,
+    [data-testid="stAlert"] div,
+    [data-testid="stAlert"] span,
+    div[class*="stAlert"] p,
+    div[class*="Alert"] p { color: #1e3a5f !important; font-weight: 500 !important; }
+    /* Primary buttons — white text on dark/accent background, all states */
+    [data-testid="stBaseButton-primary"],
+    [data-testid="stBaseButton-primary"]:hover,
+    [data-testid="stBaseButton-primary"]:focus,
+    [data-testid="stBaseButton-primary"]:active { color: #ffffff !important; }
+    [data-testid="stBaseButton-primary"] p,
+    [data-testid="stBaseButton-primary"] span,
+    [data-testid="stBaseButton-primary"]:hover p,
+    [data-testid="stBaseButton-primary"]:hover span,
+    [data-testid="stBaseButton-primary"]:focus p,
+    [data-testid="stBaseButton-primary"]:active p { color: #ffffff !important; }
+    /* Secondary buttons — dark background, white text, all states */
+    [data-testid="stBaseButton-secondary"] {
+        background: #1e293b !important;
+        border-color: #1e293b !important;
+        color: #ffffff !important;
+    }
+    [data-testid="stBaseButton-secondary"]:hover {
+        background: #334155 !important;
+        border-color: #334155 !important;
+        color: #ffffff !important;
+    }
+    [data-testid="stBaseButton-secondary"]:focus,
+    [data-testid="stBaseButton-secondary"]:active {
+        background: #0f172a !important;
+        border-color: #0f172a !important;
+        color: #ffffff !important;
+    }
+    [data-testid="stBaseButton-secondary"] p,
+    [data-testid="stBaseButton-secondary"] span,
+    [data-testid="stBaseButton-secondary"]:hover p,
+    [data-testid="stBaseButton-secondary"]:hover span,
+    [data-testid="stBaseButton-secondary"]:focus p,
+    [data-testid="stBaseButton-secondary"]:active p { color: #ffffff !important; }
+    /* Main menu popover (hamburger ⋮ dropdown) — keep Streamlit's own light text */
+    [data-testid="stMainMenuPopover"] p,
+    [data-testid="stMainMenuPopover"] li,
+    [data-testid="stMainMenuPopover"] span,
+    [data-testid="stMainMenuPopover"] div,
+    [data-testid="stMainMenuPopover"] button,
+    [data-testid="stMainMenuPopover"] a,
+    ul[data-testid="stMainMenuList"] li,
+    ul[data-testid="stMainMenuList"] p,
+    ul[data-testid="stMainMenuList"] span { color: inherit !important; }
+    ::selection { background: #c7d2fe; color: #111827; }
+    ::-moz-selection { background: #c7d2fe; color: #111827; }
     div[data-testid="stVerticalBlockBorderWrapper"] {
         border-radius: 12px !important;
         box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06) !important;
@@ -117,6 +177,7 @@ PRODUCT_CSS = """
     .app-hero {
         border-radius: 14px;
         padding: 1.35rem 1.25rem 1.5rem;
+        margin-bottom: 0.5rem;
         border: 1px solid var(--border);
         background: var(--surface);
         box-shadow: 0 8px 28px rgba(15, 23, 42, 0.09);
@@ -126,6 +187,16 @@ PRODUCT_CSS = """
     .app-hero h3 { margin: 0.35rem 0 0.5rem; font-size: 1.15rem; color: var(--text); }
     .app-hero p { margin: 0; color: var(--muted); font-size: 0.9rem; line-height: 1.5; }
     .app-hero .icon { font-size: 1.5rem; margin-bottom: 0.25rem; }
+    .aci-info-box {
+        background: #dbeafe;
+        border: 1px solid #93c5fd;
+        border-radius: 8px;
+        padding: 0.75rem 1rem;
+        color: #1e3a5f !important;
+        font-weight: 500;
+        font-size: 0.95rem;
+    }
+    .aci-info-box p, .aci-info-box span, .aci-info-box div { color: #1e3a5f !important; }
     .recent-row {
         border: 1px solid var(--border);
         border-radius: 10px;

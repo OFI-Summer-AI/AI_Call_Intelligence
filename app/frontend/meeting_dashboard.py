@@ -16,7 +16,6 @@ import streamlit as st
 from app.config import OUTPUT_DIR, REPORTS_FINAL_DIR
 from app.services.storage_service import StorageService
 from app.frontend.meeting_registry import get_entry, meeting_id_from_report_filename
-from app.frontend.report_pdf import build_meeting_pdf_bytes
 
 
 def list_report_paths() -> list[Path]:
@@ -67,6 +66,15 @@ def _fmt_hms(total_sec: float) -> str:
 @st.cache_data
 def load_meeting_json(path_str: str) -> dict:
     return StorageService().load_json(path_str)
+
+
+@st.cache_data(show_spinner=False)
+def _cached_meeting_pdf_bytes(path_str: str, mtime_ns: int) -> bytes:
+    from app.frontend.report_pdf import build_meeting_pdf_bytes
+
+    p = Path(path_str)
+    data = load_meeting_json(path_str)
+    return build_meeting_pdf_bytes(data, p.name)
 
 
 def _recording_duration_label(transcript: list) -> str:
@@ -186,9 +194,9 @@ def render_recording_kpi_card(path: Path, index: int) -> None:
             if st.button("Open insights", key=f"lib_open_{index}", type="primary", use_container_width=True):
                 st.session_state["selected_report"] = path.name
                 st.query_params["report"] = path.name
-                st.switch_page("pages/05_Meeting_Dashboard.py")
+                st.switch_page(str(Path(__file__).parent / "app_pages" / "meeting_dashboard.py"))
             try:
-                pdf_b = build_meeting_pdf_bytes(data, path.name)
+                pdf_b = _cached_meeting_pdf_bytes(str(path), path.stat().st_mtime_ns)
                 st.download_button(
                     "Download PDF",
                     data=pdf_b,

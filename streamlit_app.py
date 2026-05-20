@@ -1,25 +1,19 @@
-﻿"""
-Root launcher: ``streamlit run streamlit_app.py`` re-execs Streamlit on ``app/frontend/streamlit_app.py``.
-
-Keeps one familiar command while the real multipage app lives next to ``app/frontend/pages/``.
+"""
+Root launcher: ``streamlit run streamlit_app.py`` delegates to ``app/frontend/streamlit_app.py``.
 """
 
 from __future__ import annotations
 
-import os
 import sys
 from pathlib import Path
 
+_ROOT = Path(__file__).resolve().parent
+_FRONTEND = _ROOT / "app" / "frontend"
 
-def _run() -> None:
-    root = Path(__file__).resolve().parent
-    target = root / "app" / "frontend" / "streamlit_app.py"
-    if not target.is_file():
-        sys.stderr.write(f"Missing UI entry: {target}\n")
-        raise SystemExit(2)
-    os.execv(sys.executable, [sys.executable, "-m", "streamlit", "run", str(target)])
+for _p in (str(_ROOT), str(_FRONTEND)):
+    if _p not in sys.path:
+        sys.path.insert(0, _p)
 
+from app.frontend.streamlit_app import main
 
-# Streamlit executes the entry script in a synthetic ``__main__`` module, so
-# ``if __name__ == "__main__"`` never runs here — the launcher must run unconditionally.
-_run()
+main()
