@@ -26,7 +26,7 @@ with center:
     st.markdown("## Upload a Meeting")
     _gib = STREAMLIT_MAX_UPLOAD_MB / 1024.0
     st.markdown(
-        f"""<p style="color:#4b5563; font-size:0.95rem; line-height:1.7; margin-bottom:1rem;">
+        f"""<p style="color:#000000; font-size:0.95rem; line-height:1.7; margin-bottom:1rem;">
         Video or audio — <strong>MP4, MOV, MKV, WebM, WAV, MP3, M4A</strong>, and more.
         Per-file limit is <strong>{STREAMLIT_MAX_UPLOAD_MB:,} MB</strong> (about {_gib:.1f} GiB).
         Huge uploads still need enough RAM and free disk while the browser sends the file.

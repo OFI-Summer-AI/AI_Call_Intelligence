@@ -15,6 +15,12 @@ import numpy as np
 from app.frontend.chart_helpers import parse_ts, sentiment_curve
 from app.frontend.report_pdf_intel import momentum_phases
 
+_CHART_BG = "#E8E8E8"
+_CHART_PANEL = "#FFF9DB"
+_CHART_TEXT = "#000000"
+_CHART_GOLD = "#D4AF37"
+_CHART_GOLD_LIGHT = "#E6C567"
+
 
 def _fig_to_png(fig: plt.Figure, *, dpi: int = 120) -> bytes:
     buf = io.BytesIO()
@@ -59,8 +65,8 @@ def _speaker_bins(transcript: list[dict[str, Any]], n_bins: int = 42) -> tuple[n
 def fig_speaker_activity_heatmap(transcript: list[dict[str, Any]]) -> bytes:
     mat, labels, max_end = _speaker_bins(transcript, n_bins=44)
     fig_h = min(2.9, max(2.2, 0.26 * len(labels) + 1.35))
-    fig, ax = plt.subplots(figsize=(6.1, fig_h), facecolor="#ffffff")
-    ax.set_facecolor("#f8fafc")
+    fig, ax = plt.subplots(figsize=(6.1, fig_h), facecolor=_CHART_BG)
+    ax.set_facecolor(_CHART_PANEL)
     if mat.size == 0 or max_end < 1:
         ax.text(0.5, 0.5, "No timing data", ha="center", va="center", transform=ax.transAxes)
         ax.set_axis_off()
@@ -68,15 +74,15 @@ def fig_speaker_activity_heatmap(transcript: list[dict[str, Any]]) -> bytes:
         im = ax.imshow(
             mat,
             aspect="auto",
-            cmap="YlOrRd",
+            cmap="YlOrBr",
             interpolation="nearest",
             extent=[0, max_end / 60.0, len(labels) - 0.5, -0.5],
         )
         im.set_clim(0, 1)
         ax.set_yticks(range(len(labels)))
         ax.set_yticklabels(labels, fontsize=8)
-        ax.set_xlabel("Minutes", fontsize=8, color="#334155")
-        ax.set_title("Speaker activity (darker = more talk time)", fontsize=10, fontweight="600", pad=5, color="#0f172a")
+        ax.set_xlabel("Minutes", fontsize=8, color=_CHART_TEXT)
+        ax.set_title("Speaker activity (darker = more talk time)", fontsize=10, fontweight="600", pad=5, color=_CHART_TEXT)
     ax.spines["top"].set_visible(False)
     fig.tight_layout()
     return _fig_to_png(fig)
@@ -86,17 +92,17 @@ def fig_momentum_bars(transcript: list[dict[str, Any]]) -> bytes:
     phases = momentum_phases(transcript, n_phases=5)
     labels = [f"{a}\n{b}" for a, b, _ in phases]
     vals = [c for _, _, c in phases]
-    colors = plt.cm.RdYlGn(np.linspace(0.25, 0.85, len(vals)))
-    fig, ax = plt.subplots(figsize=(6.1, 2.05), facecolor="#ffffff")
-    ax.set_facecolor("#f8fafc")
+    colors = plt.cm.YlOrBr(np.linspace(0.35, 0.85, len(vals)))
+    fig, ax = plt.subplots(figsize=(6.1, 2.05), facecolor=_CHART_BG)
+    ax.set_facecolor(_CHART_PANEL)
     y = np.arange(len(vals))
     ax.barh(y, vals, color=colors, height=0.62, edgecolor="white", linewidth=1.0)
     ax.set_yticks(y)
     ax.set_yticklabels(labels, fontsize=7)
     ax.invert_yaxis()
     ax.set_xlim(0, 1.05)
-    ax.set_xlabel("Engagement index (normalized)", fontsize=9, color="#334155")
-    ax.set_title("Meeting momentum by segment", fontsize=10, fontweight="600", pad=5, color="#0f172a")
+    ax.set_xlabel("Engagement index (normalized)", fontsize=9, color=_CHART_TEXT)
+    ax.set_title("Meeting momentum by segment", fontsize=10, fontweight="600", pad=5, color=_CHART_TEXT)
     ax.grid(axis="x", alpha=0.25, linestyle="--")
     ax.spines["top"].set_visible(False)
     ax.spines["right"].set_visible(False)
@@ -105,10 +111,10 @@ def fig_momentum_bars(transcript: list[dict[str, Any]]) -> bytes:
 
 
 def fig_topic_depth_bars(topic_wise: list[Any]) -> bytes:
-    fig, ax = plt.subplots(figsize=(6.1, min(2.35, 0.2 * min(len(topic_wise or []), 8) + 0.95)), facecolor="#ffffff")
-    ax.set_facecolor("#f8fafc")
+    fig, ax = plt.subplots(figsize=(6.1, min(2.35, 0.2 * min(len(topic_wise or []), 8) + 0.95)), facecolor=_CHART_BG)
+    ax.set_facecolor(_CHART_PANEL)
     if not isinstance(topic_wise, list) or not topic_wise:
-        ax.text(0.5, 0.5, "Topic depth chart (after topic extraction)", ha="center", va="center", fontsize=10, color="#64748b")
+        ax.text(0.5, 0.5, "Topic depth chart (after topic extraction)", ha="center", va="center", fontsize=10, color=_CHART_TEXT)
         ax.set_axis_off()
     else:
         rows = topic_wise[:8]
@@ -125,13 +131,13 @@ def fig_topic_depth_bars(topic_wise: list[Any]) -> bytes:
         mx = max(weights) or 1.0
         w_norm = [0.15 + 0.85 * (w / mx) for w in weights]
         y = np.arange(len(labels))
-        cmap = plt.cm.viridis(np.linspace(0.25, 0.9, len(y)))
+        cmap = plt.cm.YlOrBr(np.linspace(0.35, 0.9, len(y)))
         ax.barh(y, w_norm, color=cmap, height=0.55, edgecolor="white", linewidth=1.0)
         ax.set_yticks(y)
         ax.set_yticklabels(labels, fontsize=9)
         ax.set_xticks([])
         ax.invert_yaxis()
-        ax.set_title("Topic discussion depth (relative)", fontsize=10, fontweight="600", pad=5, color="#0f172a")
+        ax.set_title("Topic discussion depth (relative)", fontsize=10, fontweight="600", pad=5, color=_CHART_TEXT)
         ax.spines["top"].set_visible(False)
         ax.spines["right"].set_visible(False)
         ax.spines["bottom"].set_visible(False)
@@ -141,21 +147,21 @@ def fig_topic_depth_bars(topic_wise: list[Any]) -> bytes:
 
 def fig_sentiment(transcript: list[dict[str, Any]]) -> bytes:
     curve = sentiment_curve(transcript, n_bins=18)
-    fig, ax = plt.subplots(figsize=(6.1, 2.1), facecolor="#ffffff")
-    ax.set_facecolor("#f8fafc")
+    fig, ax = plt.subplots(figsize=(6.1, 2.1), facecolor=_CHART_BG)
+    ax.set_facecolor(_CHART_PANEL)
     if curve.empty:
-        ax.text(0.5, 0.5, "No transcript", ha="center", va="center", fontsize=10, color="#64748b")
+        ax.text(0.5, 0.5, "No transcript", ha="center", va="center", fontsize=10, color=_CHART_TEXT)
         ax.set_axis_off()
     else:
         y = curve["tone"].values
         x = curve["minute"].values
-        ax.fill_between(x, y, 0, where=(y >= 0), alpha=0.38, color="#16a34a", interpolate=True)
-        ax.fill_between(x, y, 0, where=(y < 0), alpha=0.38, color="#ea580c", interpolate=True)
-        ax.plot(x, y, color="#0f172a", linewidth=2.0, alpha=0.88)
-        ax.axhline(0, color="#94a3b8", linewidth=0.8)
-        ax.set_xlabel("Minutes", fontsize=9, color="#334155")
-        ax.set_ylabel("Tone (keyword proxy)", fontsize=9, color="#334155")
-    ax.set_title("Sentiment trend", fontsize=10, fontweight="600", pad=5, color="#0f172a")
+        ax.fill_between(x, y, 0, where=(y >= 0), alpha=0.38, color=_CHART_GOLD_LIGHT, interpolate=True)
+        ax.fill_between(x, y, 0, where=(y < 0), alpha=0.38, color="#C9A227", interpolate=True)
+        ax.plot(x, y, color=_CHART_TEXT, linewidth=2.0, alpha=0.88)
+        ax.axhline(0, color=_CHART_GOLD, linewidth=0.8)
+        ax.set_xlabel("Minutes", fontsize=9, color=_CHART_TEXT)
+        ax.set_ylabel("Tone (keyword proxy)", fontsize=9, color=_CHART_TEXT)
+    ax.set_title("Sentiment trend", fontsize=10, fontweight="600", pad=5, color=_CHART_TEXT)
     ax.grid(True, alpha=0.2, linestyle="--")
     ax.spines["top"].set_visible(False)
     ax.spines["right"].set_visible(False)

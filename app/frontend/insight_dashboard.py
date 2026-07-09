@@ -56,12 +56,12 @@ def _h(s: Any) -> str:
 def _kpi_card_html(label: str, value: str, hint: str, grad: str) -> str:
     """One equal-footprint tile: title, value, short meaning (HTML-escaped)."""
     return (
-        f'<div style="background:{grad};border:1px solid #e5e7eb;border-radius:12px;'
+        f'<div style="background:{grad};border:1px solid #F5E6A3;border-radius:12px;'
         f'padding:12px 14px;box-shadow:0 1px 2px rgba(15,23,42,0.04);'
         f'min-height:124px;display:flex;flex-direction:column;justify-content:flex-start;">'
-        f'<div style="font-size:0.72rem;color:#64748b;text-transform:uppercase;letter-spacing:0.04em;">{_h(label)}</div>'
-        f'<div style="font-size:1.1rem;font-weight:700;color:#1e1b4b;margin-top:6px;line-height:1.2;word-break:break-word;">{_h(value)}</div>'
-        f'<div style="font-size:0.7rem;color:#64748b;line-height:1.35;margin-top:auto;padding-top:8px;">{_h(hint)}</div>'
+        f'<div style="font-size:0.72rem;color:#000000;text-transform:uppercase;letter-spacing:0.04em;">{_h(label)}</div>'
+        f'<div style="font-size:1.1rem;font-weight:700;color:#000000;margin-top:6px;line-height:1.2;word-break:break-word;">{_h(value)}</div>'
+        f'<div style="font-size:0.7rem;color:#000000;line-height:1.35;margin-top:auto;padding-top:8px;">{_h(hint)}</div>'
         "</div>"
     )
 
@@ -79,20 +79,22 @@ def _unified_kpi_grid_html(
     n_discovery_gaps: int,
     n_risks: int,
     n_themes: int,
+    checklist_total: str,
 ) -> str:
-    """All at-a-glance KPIs in one grid — equal minimum tile size, reading order top-to-bottom / left-to-right."""
+    """All at-a-glance KPIs in a deliberate 3×4 grid (12 tiles)."""
     grads = [
-        "linear-gradient(135deg,#eef2ff 0%,#ffffff 100%)",
-        "linear-gradient(135deg,#ecfdf5 0%,#ffffff 100%)",
-        "linear-gradient(135deg,#fff7ed 0%,#ffffff 100%)",
-        "linear-gradient(135deg,#fce7f3 0%,#ffffff 100%)",
-        "linear-gradient(135deg,#e0f2fe 0%,#ffffff 100%)",
-        "linear-gradient(135deg,#f8fafc 0%,#ffffff 100%)",
-        "linear-gradient(135deg,#f0fdf4 0%,#ffffff 100%)",
-        "linear-gradient(135deg,#fffbeb 0%,#ffffff 100%)",
-        "linear-gradient(135deg,#fdf4ff 0%,#ffffff 100%)",
-        "linear-gradient(135deg,#eff6ff 0%,#ffffff 100%)",
-        "linear-gradient(135deg,#fef2f2 0%,#ffffff 100%)",
+        "linear-gradient(135deg,#FFF9DB 0%,#ffffff 100%)",
+        "linear-gradient(135deg,#FFF3C4 0%,#ffffff 100%)",
+        "linear-gradient(135deg,#FFECB3 0%,#ffffff 100%)",
+        "linear-gradient(135deg,#FFF8E1 0%,#ffffff 100%)",
+        "linear-gradient(135deg,#FFFDE7 0%,#ffffff 100%)",
+        "linear-gradient(135deg,#FFF9DB 0%,#ffffff 100%)",
+        "linear-gradient(135deg,#FFF3C4 0%,#ffffff 100%)",
+        "linear-gradient(135deg,#FFECB3 0%,#ffffff 100%)",
+        "linear-gradient(135deg,#FFF8E1 0%,#ffffff 100%)",
+        "linear-gradient(135deg,#FFFDE7 0%,#ffffff 100%)",
+        "linear-gradient(135deg,#FFF9DB 0%,#ffffff 100%)",
+        "linear-gradient(135deg,#FFF3C4 0%,#ffffff 100%)",
     ]
     triples: list[tuple[str, str, str]] = [
         (
@@ -150,10 +152,15 @@ def _unified_kpi_grid_html(
             str(n_themes),
             "Count of AI topic-summary blocks produced for this meeting (agenda-style grouping).",
         ),
+        (
+            "Checklist questions",
+            checklist_total,
+            "Discovery template items scored for weighted coverage on this meeting.",
+        ),
     ]
     cards = [_kpi_card_html(lab, val, hint, grads[i % len(grads)]) for i, (lab, val, hint) in enumerate(triples)]
     return (
-        '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(172px,1fr));gap:10px;margin:0 0 1.1rem 0;">'
+        '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:0 0 1.1rem 0;">'
         + "".join(cards)
         + "</div>"
     )
@@ -340,6 +347,11 @@ def render_meeting_insight_surface(
         if w_float is not None
         else (f"{score_num} / 100" if score_num != "—" else "—")
     )
+    checklist_line = (
+        str(int(total_q))
+        if isinstance(total_q, (int, float)) and int(total_q) > 0
+        else "—"
+    )
     st.markdown(
         _unified_kpi_grid_html(
             client=client or "—",
@@ -353,6 +365,7 @@ def render_meeting_insight_surface(
             n_discovery_gaps=len(pending_areas),
             n_risks=len(risks),
             n_themes=len(topics) if isinstance(topics, list) else 0,
+            checklist_total=checklist_line,
         ),
         unsafe_allow_html=True,
     )

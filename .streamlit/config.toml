@@ -1,3 +1,11 @@
+# OFI brand palette — golden primary, light grey canvas, black text.
+[theme]
+primaryColor = "#E6C567"
+backgroundColor = "#E8E8E8"
+secondaryBackgroundColor = "#FFF9DB"
+textColor = "#000000"
+font = "sans serif"
+
 # Use 9090 (not default 8501) — avoids zombie Streamlit instances blocking the usual port.
 [browser]
 serverAddress = "127.0.0.1"

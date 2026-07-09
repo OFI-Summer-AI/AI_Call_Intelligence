@@ -78,7 +78,7 @@ with center:
             uid = hashlib.md5(p.name.encode("utf-8"), usedforsecurity=False).hexdigest()[:12]
             st.markdown(
                 f'<div class="recent-row"><b>{title}</b> · {when}<br/>'
-                f'<span style="color:#6b7280;font-size:0.8rem;">{p.name}</span></div>',
+                f'<span style="color:#000000;font-size:0.8rem;">{p.name}</span></div>',
                 unsafe_allow_html=True,
             )
             if st.button("Open insights", key=f"hm_{uid}"):

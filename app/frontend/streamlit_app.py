@@ -18,7 +18,7 @@ import sys
 
 import streamlit as st
 
-from app.frontend.product_theme import apply_product_theme
+from app.frontend.product_theme import apply_product_theme, render_sidebar_brand
 
 _PAGES_DIR = Path(__file__).parent / "app_pages"
 
@@ -38,12 +38,13 @@ def main() -> None:
         initial_sidebar_state="expanded",
     )
     apply_product_theme()
+    render_sidebar_brand()
 
     nav = st.navigation(
         [
             _page("home.py", title="Home", icon="🏠"),
             _page("upload_recording.py", title="Upload", icon="📤"),
-            _page("live_meeting_setup.py", title="Live meeting", icon="🎙️"),
+            _page("live_meeting_setup.py", title="Live meeting (coming soon)", icon="🎙️"),
             _page("meetings_library.py", title="Meetings", icon="📚"),
             _page("meeting_dashboard.py", title="Insights", icon="✨"),
             _page("settings.py", title="Settings", icon="⚙️"),

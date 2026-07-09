@@ -32,7 +32,7 @@ if not path:
     st.info("Pick a meeting from your library, or upload a new one.")
     labels = [p.name for p in list_report_paths()]
     if not labels:
-        st.markdown("<div style='background:#fefce8; border:1px solid #fde68a; border-radius:8px; padding:0.75rem 1rem; color:#92400e; font-weight:500;'>⚠️ No meetings yet. Upload a recording to get started.</div>", unsafe_allow_html=True)
+        st.markdown("<div style='background:#FFF9DB; border:1px solid #F5E6A3; border-radius:8px; padding:0.75rem 1rem; color:#000000; font-weight:500;'>⚠️ No meetings yet. Upload a recording to get started.</div>", unsafe_allow_html=True)
         st.markdown("<div style='margin-top: 0.5rem;'></div>", unsafe_allow_html=True)
         if st.button("📤 Upload a recording", use_container_width=False):
             st.switch_page(str(_P / "upload_recording.py"))

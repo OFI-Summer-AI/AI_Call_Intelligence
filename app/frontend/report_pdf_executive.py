@@ -5,6 +5,7 @@ Executive \"AI Meeting Intelligence Brief\" PDF — premium layout, tables, smar
 from __future__ import annotations
 
 import io
+from pathlib import Path
 from typing import Any
 
 from fpdf import FPDF
@@ -40,6 +41,19 @@ from app.frontend.report_pdf_narrative import (
     risk_severity_prefix,
 )
 
+_LOGO_PATH = Path(__file__).resolve().parent / "assets" / "ofi_logo.png"
+_OFI_GOLD = (230, 197, 103)
+_OFI_GOLD_DARK = (212, 175, 55)
+_OFI_BLACK = (0, 0, 0)
+_OFI_YELLOW_FILLS = (
+    (255, 249, 219),
+    (255, 243, 196),
+    (255, 236, 179),
+    (255, 248, 225),
+    (255, 253, 231),
+    (255, 249, 219),
+)
+
 
 def _latin1(text: str, limit: int = 12_000) -> str:
     t = str(text).replace("\r\n", "\n").strip()
@@ -60,8 +74,8 @@ class _BriefPDF(FPDF):
     def footer(self) -> None:
         self.set_y(-12)
         self.set_font("Helvetica", "I", 8)
-        self.set_text_color(100, 100, 100)
-        self.cell(0, 8, _latin1(f"Page {self.page_no()}", 40), align="C")
+        self.set_text_color(*_OFI_GOLD_DARK)
+        self.cell(0, 8, _latin1(f"OFI Call Intelligence · Page {self.page_no()}", 60), align="C")
 
 
 def _maybe_new_page(pdf: FPDF, min_y: float) -> None:
@@ -78,17 +92,23 @@ def _image_row(pdf: FPDF, png: bytes, *, max_h_mm: float = 76.0) -> None:
 
 def _hero_bar(pdf: FPDF) -> None:
     y = pdf.get_y()
-    pdf.set_fill_color(49, 46, 129)
-    pdf.rect(pdf.l_margin, y, pdf.epw, 10, style="F")
-    pdf.set_xy(pdf.l_margin + 2, y + 2.5)
-    pdf.set_font("Helvetica", "B", 10)
-    pdf.set_text_color(255, 255, 255)
-    pdf.cell(0, 5, _latin1("AI business meeting analyst", 80))
-    pdf.set_text_color(0, 0, 0)
-    pdf.set_y(y + 13)
+    bar_h = 14.0
+    pdf.set_fill_color(*_OFI_BLACK)
+    pdf.rect(pdf.l_margin, y, pdf.epw, bar_h, style="F")
+    text_x = pdf.l_margin + 3
+    if _LOGO_PATH.is_file():
+        logo_w = 11.0
+        pdf.image(str(_LOGO_PATH), x=pdf.l_margin + 2, y=y + 1.5, w=logo_w, h=logo_w)
+        text_x = pdf.l_margin + logo_w + 4
+    pdf.set_xy(text_x, y + 4.2)
+    pdf.set_font("Helvetica", "B", 10.5)
+    pdf.set_text_color(*_OFI_GOLD)
+    pdf.cell(0, 5, _latin1("OFI Call Intelligence", 80))
+    pdf.set_text_color(*_OFI_BLACK)
+    pdf.set_y(y + bar_h + 2)
 
 
-def _heading(pdf: FPDF, text: str, *, size: int = 13, rgb: tuple[int, int, int] = (30, 27, 75)) -> None:
+def _heading(pdf: FPDF, text: str, *, size: int = 13, rgb: tuple[int, int, int] = _OFI_GOLD_DARK) -> None:
     pdf.ln(5)
     pdf.set_font("Helvetica", "B", size)
     pdf.set_text_color(*rgb)
@@ -100,7 +120,7 @@ def _heading(pdf: FPDF, text: str, *, size: int = 13, rgb: tuple[int, int, int] 
 def _subheading(pdf: FPDF, text: str) -> None:
     pdf.ln(3)
     pdf.set_font("Helvetica", "B", 11)
-    pdf.set_text_color(71, 85, 105)
+    pdf.set_text_color(*_OFI_BLACK)
     pdf.multi_cell(pdf.epw, 6, _latin1(text, 160), new_x=XPos.LMARGIN, new_y=YPos.NEXT)
     pdf.set_text_color(0, 0, 0)
     pdf.ln(1)
@@ -123,18 +143,12 @@ def _kpi_table(pdf: FPDF, rows: list[tuple[str, str]]) -> None:
     w_label = pdf.epw * 0.52
     w_val = pdf.epw * 0.48
     row_h = 9.0
-    fills = (
-        (239, 246, 255),
-        (236, 253, 245),
-        (254, 252, 232),
-        (254, 243, 199),
-        (252, 231, 243),
-        (224, 231, 255),
-    )
     for i, (lab, val) in enumerate(rows):
-        rgb = fills[i % len(fills)]
+        rgb = _OFI_YELLOW_FILLS[i % len(_OFI_YELLOW_FILLS)]
         pdf.set_fill_color(*rgb)
+        pdf.set_draw_color(*_OFI_GOLD_DARK)
         pdf.set_font("Helvetica", "B", 9)
+        pdf.set_text_color(*_OFI_BLACK)
         pdf.cell(w_label, row_h, _latin1(lab, 72), border=1, fill=True)
         pdf.set_font("Helvetica", "", 10.5)
         pdf.cell(w_val, row_h, _latin1(val, 96), border=1, ln=1, fill=True)
@@ -144,11 +158,12 @@ def _kpi_table(pdf: FPDF, rows: list[tuple[str, str]]) -> None:
 def _banner(pdf: FPDF, text: str) -> None:
     pdf.ln(4)
     y = pdf.get_y()
-    pdf.set_fill_color(224, 231, 255)
-    pdf.set_draw_color(79, 70, 229)
+    pdf.set_fill_color(255, 249, 219)
+    pdf.set_draw_color(*_OFI_GOLD_DARK)
     pdf.rect(pdf.l_margin, y, pdf.epw, 20, style="DF")
     pdf.set_xy(pdf.l_margin + 3, y + 4)
     pdf.set_font("Helvetica", "B", 10.5)
+    pdf.set_text_color(*_OFI_BLACK)
     pdf.multi_cell(pdf.epw - 6, 6.2, _latin1(text, 520), new_x=XPos.LMARGIN, new_y=YPos.NEXT)
     pdf.set_y(y + 22)
 
@@ -164,7 +179,9 @@ def _data_table(pdf: FPDF, headers: list[str], rows: list[tuple[str, ...]], col_
     hdr_h = 8.0
     row_h = 8.0
     pdf.set_font("Helvetica", "B", 9)
-    pdf.set_fill_color(226, 232, 240)
+    pdf.set_fill_color(*_OFI_GOLD)
+    pdf.set_text_color(*_OFI_BLACK)
+    pdf.set_draw_color(*_OFI_GOLD_DARK)
     for h, w in zip(headers, col_widths):
         pdf.cell(w, hdr_h, _latin1(_trunc_cell(h, int(w / 1.45)), 100), border=1, fill=True)
     pdf.ln()
@@ -198,7 +215,7 @@ def _discovery_blocks_pdf(pdf: FPDF, cov: list[Any], *, max_items: int = 12) -> 
         notes = str(row.get("notes", "") or "").strip() or "—"
         ev = str(row.get("evidence", "") or "").strip() or "—"
         pdf.set_font("Helvetica", "B", 11)
-        pdf.set_text_color(30, 41, 59)
+        pdf.set_text_color(*_OFI_GOLD_DARK)
         pdf.set_x(pdf.l_margin)
         pdf.multi_cell(
             pdf.epw,
@@ -223,7 +240,7 @@ def _discovery_blocks_pdf(pdf: FPDF, cov: list[Any], *, max_items: int = 12) -> 
         pdf.ln(6 if i < min(len(rows_in), max_items) - 1 else 3)
     if len(rows_in) > max_items:
         pdf.set_font("Helvetica", "I", 9.5)
-        pdf.set_text_color(71, 85, 105)
+        pdf.set_text_color(*_OFI_BLACK)
         pdf.multi_cell(
             pdf.epw,
             5.5,
@@ -294,6 +311,10 @@ def build_executive_meeting_pdf_bytes(data: dict[str, Any], report_filename: str
     ind_n = len(ind_list)
     participant_tile = str(ind_n) if ind_n else ("Needs speaker IDs" if not data.get("has_diarization") else "0")
     n_themes = len(topics) if isinstance(topics, list) else 0
+    total_q = cq.get("questions_total")
+    if not isinstance(total_q, (int, float)) and isinstance(cov, list):
+        total_q = len(cov)
+    checklist_s = str(int(total_q)) if isinstance(total_q, (int, float)) and int(total_q) > 0 else "—"
 
     matrix_rows = topic_importance_matrix(topics if isinstance(topics, list) else [], transcript)
     pngs = build_intelligence_pngs(data)
@@ -304,9 +325,10 @@ def build_executive_meeting_pdf_bytes(data: dict[str, Any], report_filename: str
     pdf.add_page()
     _hero_bar(pdf)
     pdf.set_font("Helvetica", "B", 15)
+    pdf.set_text_color(*_OFI_BLACK)
     pdf.multi_cell(pdf.epw, 8, _latin1("Executive AI Meeting Intelligence Brief", 120))
     pdf.set_font("Helvetica", "B", 11.5)
-    pdf.set_text_color(51, 65, 85)
+    pdf.set_text_color(*_OFI_GOLD_DARK)
     pdf.multi_cell(pdf.epw, 6.5, _latin1(title, 200))
     pdf.set_text_color(0, 0, 0)
     meta_lines = [
@@ -340,6 +362,7 @@ def build_executive_meeting_pdf_bytes(data: dict[str, Any], report_filename: str
             ("Open discovery gaps", str(len(pending_areas))),
             ("Watch-out flags", str(len(rlist))),
             ("Theme groups", str(n_themes)),
+            ("Checklist questions", checklist_s),
         ],
     )
 
