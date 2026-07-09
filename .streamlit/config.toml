@@ -8,16 +8,16 @@ font = "sans serif"
 
 # Use 9090 (not default 8501) — avoids zombie Streamlit instances blocking the usual port.
 [browser]
-serverAddress = "127.0.0.1"
-serverPort = 9090
+# serverAddress = "127.0.0.1"
+# serverPort = 9090
 gatherUsageStats = false
 
 # Streamlit defaults to 200 MB; long recordings need more. Value is megabytes (8192 ≈ 8 GiB).
 # Override at launch: streamlit run ... --server.maxUploadSize 8192
 # Or env: STREAMLIT_SERVER_MAX_UPLOAD_SIZE=8192
 [server]
-address = "127.0.0.1"
-port = 9090
+# address = "127.0.0.1"
+# port = 9090
 maxUploadSize = 8192
 enableCORS = false
 enableXsrfProtection = true
